@@ -1,0 +1,96 @@
+# FETCH Range Calculation Pipeline Configuration
+# Example configuration file
+
+# Station metadata is defined in src/config.py
+# These are the three FETCH acoustic stations:
+#   2502: East  (lat: 45.96257971, lon: -129.9910622, heading: 120°)
+#   2503: West  (lat: 45.94700845, lon: -130.0265777, heading: 195°)
+#   2504: North (lat: 45.95882833, lon: -130.0114997, heading: 127°)
+
+# Input files
+input_files:
+  # Station data CSV files (relative or absolute paths)
+  station_data:
+    - "Data_230912111909_East_006870_2502_.csv"
+    - "Data_230912112033_West_006874_2503_.csv"
+    - "Data_230913091309_North_00687A_2504_.csv"
+
+  # OOI CTD salinity data
+  ctd_salinity: "/data/wsd02/maleen_data/ooi-rs03ccal-mj03f-12-ctdpfb305_2f21_522e_6ceb.csv"
+
+  # Node pressure data pattern ({node} will be replaced with B, E, or F)
+  node_pressure_pattern: "/data/wsd02/maleen_data/MJ03{node}*.Data"
+
+  # Tidal prediction files
+  tidal_predictions:
+    - "/data/wsd02/maleen_data/pred_F_2022.txt"
+    - "/data/wsd02/maleen_data/pred_F_2023.txt"
+    - "/data/wsd02/maleen_data/pred_F_2024.txt"
+    - "/data/wsd02/maleen_data/pred_F_2025.txt"
+
+# Output directory
+output_dir: "results/"
+
+# Processing parameters
+parameters:
+  # Number of days to exclude from start of analysis
+  exclude_first_days: 30
+
+  # Moving average window for smoothing
+  moving_average_window: "30D"
+
+  # Quantiles for IQR-based outlier removal
+  outlier_quantiles:
+    - 0.15
+    - 0.85
+
+  # Smoothing window for post-gap salinity data
+  smoothing_window: 250
+
+# Salinity correction parameters
+salinity:
+  # Discrete bottle sample times for calibration
+  bottle_times:
+    - "2022-08-14 05:49:53"
+    - "2022-08-30 19:37:13"
+    - "2023-09-17 03:35:09"
+
+  # Corresponding bottle salinity values (PSU)
+  bottle_values:
+    - 34.52543602
+    - 34.52720340
+    - 34.52700000
+
+  # Gap period to remove and stitch
+  gap_start: "2023-09-07 00:00:00"
+  gap_end: "2023-09-14 00:00:00"
+
+# Temperature correction
+temperature:
+  # Temperature offset for station 2504 (North)
+  correction_2504: 0.351
+
+# Analysis time window
+time_window:
+  start: "2022-08-14 05:49:53"
+  end: "2025-09-05 23:59:00"
+
+# Output files produced by the pipeline:
+#
+# Distance CSVs:
+#   - CE_distance_corrected.csv (Central -> East)
+#   - EC_distance_corrected.csv (East -> Central)
+#   - CW_distance_corrected.csv (Central -> West)
+#   - WC_distance_corrected.csv (West -> Central)
+#   - EW_distance_corrected.csv (East -> West)
+#   - WE_distance_corrected.csv (West -> East)
+#
+# Analysis CSVs:
+#   - triangle_area_timeseries.csv
+#
+# Figures:
+#   - velocity_comparison.pdf
+#   - distance_timeseries_{pair}.png
+#   - triangle_area_analysis.png
+#   - triangle_area_full_analysis.png
+#   - pressure_comparison.png
