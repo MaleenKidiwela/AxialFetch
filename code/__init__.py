@@ -45,7 +45,8 @@ from .positioning import (
     to_enu,
     apply_tilt_correction,
     geodetic_to_enu,
-    calculate_range_from_coordinates
+    calculate_range_from_coordinates,
+    build_baseline_perturbations
 )
 
 from .optimization import (
@@ -62,6 +63,21 @@ from .utils import (
     calculate_statistics,
     normalize_data
 )
+
+from .range_salinity import (
+    SalinityCalibrationConfig,
+    GapMeanShiftConfig,
+    prepare_salinity_series,
+    bottle_residuals
+)
+
+from .tidal_correction import (
+    load_tidal_predictions,
+    optimize_tidal_correction,
+    apply_tidal_correction
+)
+
+from .velocity_interpolation import interpolate_velocity
 
 from .data_persistence import (
     save_dataframe_as_pickle,
@@ -94,6 +110,7 @@ __all__ = [
     'apply_tilt_correction',
     'geodetic_to_enu',
     'calculate_range_from_coordinates',
+    'build_baseline_perturbations',
     
     # Optimization
     'fit_and_extrapolate',
@@ -107,6 +124,16 @@ __all__ = [
     'calculate_rms_error',
     'calculate_statistics',
     'normalize_data',
+
+    # Range calculation helpers
+    'SalinityCalibrationConfig',
+    'GapMeanShiftConfig',
+    'prepare_salinity_series',
+    'bottle_residuals',
+    'load_tidal_predictions',
+    'optimize_tidal_correction',
+    'apply_tidal_correction',
+    'interpolate_velocity',
     
     # Data persistence
     'save_dataframe_as_pickle',

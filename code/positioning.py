@@ -168,6 +168,55 @@ def calculate_baseline_perturbations(
     return perturb_df
 
 
+def build_baseline_perturbations(
+    stations: dict,
+    pairs: list,
+    h_txr: float = H_TXR,
+) -> pd.DataFrame:
+    """
+    Build a baseline perturbation table for multiple station pairs.
+
+    Args:
+        stations: Mapping of station IDs to dicts with keys:
+            'inc' (DataFrame with Record Time, Pitch, Roll),
+            'lat', 'lon', and 'heading'.
+        pairs: List of (tx, rx) tuples specifying baseline directions.
+        h_txr: Transducer-to-tilt-sensor lever arm in meters.
+
+    Returns:
+        DataFrame indexed by timestamp with per-baseline perturbation columns.
+    """
+    series_list = []
+
+    for tx, rx in pairs:
+        station_tx = stations[tx]
+        station_rx = stations[rx]
+
+        timeline = pd.Index(
+            sorted(set(station_tx["inc"]["Record Time"]) | set(station_rx["inc"]["Record Time"]))
+        )
+
+        inc_tx = interp_unique(station_tx["inc"], timeline)
+        inc_rx = interp_unique(station_rx["inc"], timeline)
+
+        e_tx, n_tx = to_enu(*local_xy(inc_tx, h_txr), station_tx["heading"])
+        e_rx, n_rx = to_enu(*local_xy(inc_rx, h_txr), station_rx["heading"])
+
+        ue, un = unit_vector(
+            station_tx["lat"],
+            station_tx["lon"],
+            station_rx["lat"],
+            station_rx["lon"],
+        )
+        dL_oneway = (e_tx - e_rx) * ue + (n_tx - n_rx) * un
+
+        series_list.append(
+            pd.DataFrame({f"{tx}-{rx}_dL": dL_oneway}, index=timeline)
+        )
+
+    return pd.concat(series_list, axis=1).sort_index()
+
+
 def geodetic_to_enu(
     lat: float, 
     lon: float, 

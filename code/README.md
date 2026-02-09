@@ -90,6 +90,20 @@ Statistical and utility functions:
 - `normalize_data()`: Data normalization (z-score, min-max, robust)
 - `detect_outliers()`: Multiple outlier detection methods
 
+### Range Calculation Workflow (FETCH Range Calculation Notebook)
+Structured helpers extracted from `FETCH Range Calculation.ipynb`:
+- `range_salinity.py`: Salinity gap stitching, smoothing, bottle calibration
+- `tidal_correction.py`: Tidal prediction parsing and pressure correction
+- `velocity_interpolation.py`: Interpolate recorded velocities to data timelines
+- `pressure_moving_average.py`: 15-day moving average and re-basing helpers
+- `range_calculation_workflow.py`: Data extraction and harmonic mean utilities
+- `range_calculation_main.py`: Notebook-oriented main workflow entry point
+
+Use the included notebook scaffold:
+```bash
+jupyter notebook code/fetch_range_calculation.ipynb
+```
+
 ## Example Analysis Workflow
 
 ```python
