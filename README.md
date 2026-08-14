@@ -187,15 +187,76 @@ AxialFetch/
 │   ├── range_correction.py     # Moving average, CSV export, perturbation correction
 │   ├── range_figures.py        # All figure generation (21 plots)
 │   ├── calculate_range.py      # Pipeline 2 orchestration
+│   ├── VSM_forward.py          # Okada dislocation forward model (used by Slead notebooks)
+│   ├── *.ipynb                 # Source notebooks + modeling/analysis work
 │   └── output/
 │       ├── *.pkl               # Pickle files from Pipeline 1
 │       ├── distances/          # CSV files from Pipeline 2
-│       └── figures/            # PNG plots from Pipeline 2
-├── Data_*_2502_.csv            # FETCH instrument data (Eastern)
-├── Data_*_2503_.csv            # FETCH instrument data (Western)
-├── Data_*_2504_.csv            # FETCH instrument data (Northern)
+│       ├── figures/            # PNG plots from Pipeline 2
+│       └── drift/              # Drift-correction outputs from drift2.ipynb
+├── Data/                       # All static inputs (referenced via config.DATA_DIR)
+│   ├── Data_*_2502_.csv        # FETCH instrument data (Eastern)
+│   ├── Data_*_2503_.csv        # FETCH instrument data (Western)
+│   ├── Data_*_2504_.csv        # FETCH instrument data (Northern)
+│   ├── model3a.h5, model3b.h5  # Slead et al. slip-inversion models
+│   └── *_drifcor.csv, *.mat    # Drift corrections, misc inputs
+├── Extra_files_fetch/          # Archived/exploratory work (PINN, common-mode, older baselines)
+├── MJ03{E-B,F-B,F-E}/          # Differential pressure records
 └── README.md
 ```
+
+> Paths to `Data/` are centralised in `src/config.py` (`DATA_DIR`). Notebooks in `src/` and
+> `Extra_files_fetch/` reach model files via the relative path `../Data/`, so run them from
+> the directory they live in.
+
+---
+
+## Notebooks (`src/`)
+
+The `.py` modules above are the maintained pipeline. The notebooks are the research record —
+where each processing step was worked out, plus modeling and figure work that never moved into
+the pipeline.
+
+### Pipeline sources
+
+| Notebook | Description |
+|:---------|:------------|
+| `Create_Dataframes.ipynb` | Source notebook for Pipeline 1; the modules were refactored out of this |
+| `Calculate_Range.ipynb` | Source notebook for Pipeline 2 |
+| `FETCH StreamLine Final.ipynb` | Monolithic ancestor (172 cells) — full load → salinity → velocity → harmonic mean → range workflow in one notebook |
+| `FETCH Range Calculation.ipynb` | Later revision of the same monolith (140 cells); the two-notebook split came from these |
+
+### Deformation forward modeling
+
+Okada dislocation models from the Slead et al. slip inversions (`Data/model3{a,b}.h5`), used to
+predict what range change a given magma-source geometry *should* produce.
+
+| Notebook | Description |
+|:---------|:------------|
+| `Slead 3a.ipynb` | Loads model 3a → 574 patches → `VSM_forward.okada` on the full grid → validates `UZ` against saved `Z` → station displacements → predicted Δrange per baseline |
+| `Slead 3b.ipynb` | Same for model 3b |
+| `Slead_3a_station_only_fast.ipynb` | Fast path: evaluates Okada only at station coordinates, skipping the grid. No map or `UZ` validation |
+
+### Pressure-driven range modeling
+
+Least-squares fits of baseline range against bottom pressure plus an annual sine/cosine, to
+separate real deformation from seasonal and pressure-correlated signal.
+
+| Notebook | Description |
+|:---------|:------------|
+| `Axial Modeling West Final.ipynb` | West↔North baseline vs central pressure + annual terms; reports R² and de-seasonalised residuals |
+| `Axial Modeling East-West Final.ipynb` | East↔West baseline against three z-scored pressures (west, east, central) + annual terms |
+
+> These two label station 2504 as **"Central"** (co-located with NodeF), not "Northern" as elsewhere in this README.
+
+### Drift and seasonality removal
+
+| Notebook | Description |
+|:---------|:------------|
+| `drift2.ipynb` | Piecewise instrument-drift fits `P ≈ a + b·Pc + c·t'` over manually chosen segments; converts `F2025_all.dat` to MJ03F format; writes `F_node_pressure.csv` |
+| `drift_removal.ipynb` | Successor to `drift2` — same fit, cleaner workflow, plus depth-change extension. Writes per-station `*_driftcorr_daily_*.csv` |
+| `seasonality removal.ipynb` | Fits `L = a·Pc + b·sin + c·cos + d` to 30-day-MA baselines and subtracts the seasonal term. Writes `baselines_fit_outputs.csv` and the 4-panel summary figure |
+| `plots.ipynb` | Publication figures: cumulative seismic moment east vs west from the `ForMaleenV4.mat` earthquake catalogue, and baseline projections onto station geometry |
 
 ---
 
@@ -256,7 +317,7 @@ Distance (m) = V_harmonic × (Range_ms − TAT_ms) / 2000
 
 | Data | Source | Format |
 |:-----|:-------|:-------|
-| FETCH instrument data | 3 CSV files in project root | Multi-header CSV with codes (TMP, DQZ, SSP, BSL, INC) |
+| FETCH instrument data | 3 CSV files in `Data/` | Multi-header CSV with codes (TMP, DQZ, SSP, BSL, INC) |
 | CTD salinity | OOI Cabled Array (RS03CCAL, MJ03F) | CSV |
 | Tidal predictions | Pre-computed (2022&ndash;2025) | Text (Year, Month, Day, Hour, Min, Sec, Value) |
 | NANO pressure | Bottom pressure recorders (MJ03F, MJ03E, MJ03B) | `.Data` files |

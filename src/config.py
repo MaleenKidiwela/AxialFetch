@@ -8,13 +8,16 @@ import os
 # ---------------------------------------------------------------------------
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+# Raw instrument data, model files, and other static inputs
+DATA_DIR = os.path.join(PROJECT_ROOT, "Data")
+
 # ---------------------------------------------------------------------------
 # FETCH instrument CSV files
 # ---------------------------------------------------------------------------
 FETCH_CSV_FILES = [
-    os.path.join(PROJECT_ROOT, "Data_230912111909_East_006870_2502_.csv"),
-    os.path.join(PROJECT_ROOT, "Data_230912112033_West_006874_2503_.csv"),
-    os.path.join(PROJECT_ROOT, "Data_230913091309_North_00687A_2504_.csv"),
+    os.path.join(DATA_DIR, "Data_230912111909_East_006870_2502_.csv"),
+    os.path.join(DATA_DIR, "Data_230912112033_West_006874_2503_.csv"),
+    os.path.join(DATA_DIR, "Data_230913091309_North_00687A_2504_.csv"),
 ]
 
 # ---------------------------------------------------------------------------
